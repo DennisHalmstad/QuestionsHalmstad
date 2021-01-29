@@ -1,0 +1,19 @@
+{
+  "name": "questionsgame",
+  "version": "1.0.0",
+  "description": "questiongame",
+  "main": "index.html",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "esm": "^3.2.25",
+    "mocha": "^8.2.1"
+  },
+  "devDependencies": {
+    "jsdom": "^16.4.0",
+    "nyc": "^15.1.0"
+  }
+}

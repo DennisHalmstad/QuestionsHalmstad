@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Questions GameMechanics - raw js</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="questionsgame.css">
+</head>
+<body>
+<div class="wrapper">
+    <div id="introContainer">
+        Hej och Välkommen. <br>
+        Visst skulle jag kunnat använda denna frågesport för att försöka berätta massa information om mig, min
+        arbetslivserfarehet etc. Men det är ganska trist så väljer att försöka hitta frågor som intresserar mig
+        och som ändå på sätt och vis säger en del om mig. <br>
+        <br>
+        Du har 15 sekunder på dig att besvara varje fråga. Du har två hjälpare, du kan använda de en gång var. Du kan
+        antingen få tio sekunder extra och du kan dölja två felaktiga svar.
+
+        Lycka till.
+
+        <div class="hover restart">Starta Spelet</div>
+    </div>
+
+    <div id="questionContainer">
+        <div id="questionscounter"></div>
+        <div id="question"></div>
+        <div class="answerButton hover" id="answer0"></div>
+        <div class="answerButton hover" id="answer1"></div>
+        <div class="answerButton hover" id="answer2"></div>
+        <div class="answerButton hover" id="answer3"></div>
+        <div class="hints">
+            <div class="hintButton hover" id="hintfiftyfifty">Dölj 2 felaktiga svar</div>
+            <div class="hintButton hover" id="hinttime">Tio extra sekunder.</div>
+        </div>
+
+        <div class="currentTimerWrapper">
+            <progress id="currentTimerProgress" max="15" value="0"></progress>
+            <div id="currentTimer"></div>
+        </div>
+
+    </div>
+
+    <div id="statsContainer">
+        Du besvarade:
+        <div class="statsText" id="correctAnswered"></div>
+        <div class="statsText" id="incorrectAnswered"></div>
+        <div class="statsText" id="unanswered"></div>
+        <div class="hover restart">Spela igen</div>
+    </div>
+</div>
+
+
+<script type="module">
+    import {GameMechanics} from "./modules/GameMechanics.js";
+
+    let game = new GameMechanics();
+    game.initGame(document);
+
+    /**
+     * Bind ui to game
+     */
+
+    for (const elem of document.getElementsByClassName('restart')) {
+        elem.addEventListener('click', () => {
+            game.startNewGame();
+        })
+    }
+
+    for (const answ of [0, 1, 2, 3]) {
+        document.getElementById('answer' + answ).addEventListener('click', () => {
+            game.answerQuestion(answ)
+        });
+    }
+
+    document.getElementById('hintfiftyfifty').addEventListener('click', () => {
+        game.hintUseFiftyFifty();
+    });
+
+    document.getElementById('hinttime').addEventListener('click', () => {
+        game.hintUseTime();
+    });
+
+
+    /**
+     * make shure info from game is shown
+     */
+
+    document.addEventListener('game.statsUpdated', (evt) => {
+        let stats = evt.detail;
+        console.log('stats', stats);
+        document.getElementById('correctAnswered').innerText = stats.correctAnswers + " av 10 frågor rätt.";
+        document.getElementById('incorrectAnswered').innerText = stats.incorrectAnswers + " av 10 frågor fel.";
+        document.getElementById('unanswered').innerText = stats.unanswered + " besvarade du inte.";
+    })
+
+    document.addEventListener('game.time', (evt) => {
+        let times = evt.detail;
+        document.getElementById('currentTimerProgress').value = times.secondsElapsed;
+        document.getElementById('currentTimerProgress').max = times.maxTime;
+        document.getElementById('currentTimer').innerText = times.secondsLeft + " sekunder kvar";
+    });
+
+    document.addEventListener('game.questionUpdated', (evt) => {
+        let info = evt.detail;
+        document.getElementById('question').innerText = info.question;
+        for (const answ of [0, 1, 2, 3]) {
+            document.getElementById('answer' + answ).classList.remove('incorrectAnswer');
+            document.getElementById('answer' + answ).innerText = info.answers[answ];
+        }
+        document.getElementById("questionscounter").innerText = "Fråga " +
+            info.currentQuestionNr + " av " + info.nrQuestionsInGame;
+    });
+
+    document.addEventListener('game.hintfiftyfifty.toggle', (evt) => {
+        if (evt.detail) {
+            document.getElementById('hintfiftyfifty').classList.add('used');
+        } else {
+            document.getElementById('hintfiftyfifty').classList.remove('used');
+        }
+    });
+
+    document.addEventListener('game.hinttime.toggle', (evt) => {
+        if (evt.detail) {
+            document.getElementById('hinttime').classList.add('used');
+        } else {
+            document.getElementById('hinttime').classList.remove('used');
+        }
+    });
+
+    document.addEventListener('game.changeDisplayStyle', (evt) => {
+        document.getElementById(evt.detail.id).style.display = evt.detail.style;
+
+    });
+
+    document.addEventListener('game.hideFaultyAnswers',(evt)=>{
+        for (const answ of [0, 1, 2, 3]) {
+            if ((answ !== evt.detail.correctAnswer) && (answ !== evt.detail.answerToKeep)) {
+                document.getElementById('answer' + answ).classList.add('incorrectAnswer');
+            }
+        }
+    });
+
+</script>
+</body>
+</html>
